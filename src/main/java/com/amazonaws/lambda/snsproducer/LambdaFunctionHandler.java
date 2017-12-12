@@ -14,18 +14,19 @@ import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
  
 public class LambdaFunctionHandler implements RequestHandler<Object, String> {
-	private static final int MAX_COUNT = 5000;
+	private static final int MAX_COUNT = 10000;
 	String topicARN = "arn:aws:sns:us-west-2:983671419152:test-Delivery";
-	public static String TOKEN = "zsz.5000.";
- 
+	public static String TOKEN = "ccc.10000.";
+	static AmazonSNSClient  snsClient = null;
+	static {
+		ClientConfiguration clientConfig = new ClientConfiguration();
+		clientConfig.setClientExecutionTimeout(1000000);
+        snsClient  = (AmazonSNSClient) AmazonSNSClientBuilder.standard()
+                .withRegion(Regions.US_WEST_2).withClientConfiguration(clientConfig).build(); 
+	}
     @Override
     public String handleRequest(Object input, Context context) {
-    		try {
-    			ClientConfiguration clientConfig = new ClientConfiguration();
-    			clientConfig.setClientExecutionTimeout(30000);
-    	        AmazonSNSClient  snsClient  = (AmazonSNSClient) AmazonSNSClientBuilder.standard()
-    	                .withRegion(Regions.US_WEST_2).withClientConfiguration(clientConfig).build();  
-
+    		try { 
     	       //publish to an SNS topic
     	        for(int i = 0; i < MAX_COUNT; i++){
     				 String uniqueMsg = TOKEN + String.valueOf(i) + ".";
