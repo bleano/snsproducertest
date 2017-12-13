@@ -1,25 +1,26 @@
 package com.amazonaws.lambda.snsproducer;
-
+ 
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.sns.AmazonSNSAsync;
-import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.Future;
-
+ 
 public class LambdaFunctionHandler implements RequestHandler<Object, String> {
 	static final int MAX_COUNT = 10000;
 	static String topicARN = "arn:aws:sns:us-west-2:983671419152:test-Delivery";
-    static String TOKEN = "AmazonSNSAsync." + MAX_COUNT + ".";
-	static AmazonSNSAsync amazonSNSAsync = null;
+    static String TOKEN = "eee.10000.";
+	static AmazonSNS  amazonSNS = null;
 	static {
-		amazonSNSAsync = AmazonSNSAsyncClientBuilder.standard()
+		amazonSNS = AmazonSNSClient.builder()
 	                .withRegion(Regions.US_WEST_2)
+	                .withCredentials(new DefaultAWSCredentialsProviderChain())
 	                .build();
 	}
     @Override
@@ -36,10 +37,9 @@ public class LambdaFunctionHandler implements RequestHandler<Object, String> {
     				 msg = msg.replace("REMAIN", String.valueOf(context.getRemainingTimeInMillis()));
     				 long start = System.currentTimeMillis();
     				 PublishRequest publishRequest = new PublishRequest(topicARN, msg);
-    				 Future<PublishResult> publishResultFuture = amazonSNSAsync.publishAsync(publishRequest);
+    				 PublishResult publishResult = amazonSNS.publish(publishRequest);
     				 long stop = System.currentTimeMillis();
-					 context.getLogger().log(" msg: " + msg + " snsTime:" + String.valueOf(stop-start));
-//    				 context.getLogger().log("snsRes:" +  publishResult.getMessageId() + " msg: " + msg + " snsTime:" + String.valueOf(stop-start));
+    				 context.getLogger().log("snsRes:" +  publishResult.getMessageId() + " msg: " + msg + " snsTime:" + String.valueOf(stop-start));  
     	        }
     		}catch(com.amazonaws.services.lambda.model.TooManyRequestsException e)
     		{
